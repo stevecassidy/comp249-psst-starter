@@ -6,6 +6,8 @@ from webtest import TestApp
 from database import COMP249Db
 import main, users
 
+from random import choice
+
 
 class Level3FunctionalTests(unittest.TestCase):
 
@@ -102,7 +104,52 @@ class Level3FunctionalTests(unittest.TestCase):
         self.assertEqual('/logout', logoutform.action)
 
 
-        
+    def testCreatePost(self):
+        """As a registered user, I can fill out a form on the main
+        page to create a new post, when I submit the form I am redirected
+        to the main page and my new post appears in the list"""
+
+        (password, nick, avatar) = self.users[0]
+
+        # generate a random string to look for in the post, use it in a URL that should be
+        # turned into a link
+        letters = "abcdefghijklmnopqrstuvwxyz1234560928"
+        randomstring = ''.join([choice(letters) for i in range(20)])
+        url = "http://example.org/url/" + randomstring
+
+        testmessage = "This is a new message that mentions @Mandible and has a "+ url + " in it."
+
+        response = self.doLogin(nick, password)
+        response = self.app.get('/')
+
+        self.assertIn('postform', response)
+
+        form = response.forms['postform']
+        self.assertEqual('/post', form.action, "post form action should be '/post'")
+
+        form['post'] = testmessage
+
+        response = form.submit()
+
+        # check response
+
+        self.assertEqual('303 See Other', response.status)
+        self.assertEqual('/', response.headers['Location'])
+
+        # fetch home page and look for our message
+
+        response = self.app.get('/')
+        self.assertIn(randomstring, response)
+
+        # also look for the mention as a link
+        html = response.html
+        links = html.find_all('a', attrs={'href': '/users/Mandible'})
+        self.assertGreaterEqual(len(links), 1, "can't find link to user page for Mandible after posting")
+
+        # and the URL as a link
+        links = html.find_all('a', attrs={'href': url})
+        self.assertGreaterEqual(len(links), 1, "can't find link to url " + url + " after posting")
+
 
 
 if __name__ == "__main__":
