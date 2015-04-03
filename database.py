@@ -141,8 +141,8 @@ CREATE TABLE follows (
             # to get a time in the past for a post
             t = 0
             for i in range(100):
-                user = choice(users)
-                mentions = ['@'+u[2] for u in users if u != user]
+                user = choice(self.users)
+                mentions = ['@'+u[2] for u in self.users if u != user]
 
                 content = gentext(user[2], mentions)
 
