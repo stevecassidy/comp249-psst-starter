@@ -96,12 +96,39 @@ class Level3FunctionalTests(unittest.TestCase):
 
         # no login form
         self.assertNotIn('loginform', response2.forms)
-        # but we see the user name
-        self.assertIn(nick, response2)
-        # and a logout form
+
+        # but a logout form
         self.assertIn('logoutform', response2.forms)
         logoutform = response2.forms['logoutform']
         self.assertEqual('/logout', logoutform.action)
+
+        # and the message "Logged in as XXX"
+        self.assertIn("Logged in as %s" % nick, response2)
+
+    def testLogoutForm(self):
+        """As a registered user, once I have logged in, if I click on the Logout
+        button in a page, the page that I get in response is the site home
+        page which now doesn't have my name and again shows the login form."""
+
+        (password, nick, avatar) = self.users[0]
+
+        response1 = self.doLogin(nick, password)
+        response2 = self.app.get('/')
+
+        # and a logout form
+        self.assertIn('logoutform', response2.forms)
+        logoutform = response2.forms['logoutform']
+
+        response3 = logoutform.submit()
+        # response should be a redirect
+        self.assertEqual('303 See Other', response3.status)
+        self.assertEqual('/', response3.headers['Location'])
+
+        response4 = self.app.get('/')
+        # should see login form again
+        loginform = response4.forms['loginform']
+        self.assertIsNotNone(loginform, "no form with id loginform in the page")
+
 
 
     def testCreatePost(self):
@@ -149,6 +176,8 @@ class Level3FunctionalTests(unittest.TestCase):
         # and the URL as a link
         links = html.find_all('a', attrs={'href': url})
         self.assertGreaterEqual(len(links), 1, "can't find link to url " + url + " after posting")
+
+
 
 
 
