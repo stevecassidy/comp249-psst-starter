@@ -142,9 +142,9 @@ CREATE TABLE follows (
             t = 0
             for i in range(100):
                 user = choice(self.users)
-                mentions = ['@'+u[2] for u in self.users if u != user]
+                mentions = ['@'+u[1] for u in self.users if u != user]
 
-                content = gentext(user[2], mentions)
+                content = gentext(user[1], mentions)
 
                 # generate a timestamp, not normally needed because the timestamp field
                 # defaults to the current time, but we want to generate posts at different
@@ -153,7 +153,7 @@ CREATE TABLE follows (
 
                 sql = "INSERT INTO posts (usernick, timestamp, content) VALUES (?, ?, ?)"
 
-                cursor.execute(sql, (user[2], timestamp, content))
+                cursor.execute(sql, (user[1], timestamp, content))
 
                 # increment the time we subtract
                 t += 3013
